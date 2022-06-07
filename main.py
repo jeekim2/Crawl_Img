@@ -1,10 +1,11 @@
+
 import time
 import os
 import hashlib
 import requests
 import urllib.request
 from bs4 import BeautifulSoup as bs
-
+from datetime import datetime
 from selenium import webdriver
 from selenium.webdriver.support import expected_conditions as EC
 from selenium.webdriver.support.ui import WebDriverWait
@@ -12,7 +13,7 @@ from selenium.webdriver.common.by import By
 
 # import webbrowser
 
-NUM_BUFFER_PAGE = 10
+NUM_BUFFER_PAGE = 5
 SEARCH_CYCLE = 6
 NOT_SEARCHED_LIMIT = 30
 ORG_PAGE_ADDR = "https://imgdb.in/"
@@ -64,7 +65,7 @@ def calc_file_hash(path):
 def reset_init():
     reset_init.counter += 1
 
-    driver = webdriver.Firefox(executable_path="./geckodriver")
+    driver = webdriver.Chrome()
     driver.get(ORG_PAGE_ADDR2)
     p = driver.find_element_by_xpath('//*[@id="upload_media"]/div/input[@type="file"]')
     p.send_keys(os.path.abspath("dummy.png"))
@@ -76,7 +77,8 @@ def reset_init():
     WebDriverWait(driver, 20).until(EC.alert_is_present())
     alert = driver.switch_to.alert
     alert.accept()
-    print(reset_init.counter)
+    print(reset_init.counter, end="  ")
+    print(datetime.now())
     driver.quit()
     return resStr
 
@@ -93,7 +95,8 @@ def get_images():
         soup = bs(page.text, "html.parser")
         if len(page.text) > 70:
             initStr = addr
-            print(initStr)
+            print(initStr, end="  ")
+            print(datetime.now())
             get_images.counter = 0
             gg = soup.select("img.img-responsive.gallery-items")
             ImgAddr = gg[0].attrs["src"]
@@ -113,22 +116,22 @@ def get_images():
 
 def main():
     global initStr
-
-    start_time = time.time()
-
-    reset_init.counter = 0
-    initStr = reset_init()
-    get_images.counter = 0
     while True:
-        current_time = time.time()
-        elapsed_time = current_time - start_time
-
-        if elapsed_time > SEARCH_CYCLE:
+        try:
             start_time = time.time()
-            get_images()
 
-    # get_index_str(initStr)
-    # print(*get_index_str("ZZZV"))
+            reset_init.counter = 0
+            initStr = reset_init()
+            get_images.counter = 0
+            while True:
+                current_time = time.time()
+                elapsed_time = current_time - start_time
+
+                if elapsed_time > SEARCH_CYCLE:
+                    start_time = time.time()
+                    get_images()
+        except:
+            continue
     return
 
 
